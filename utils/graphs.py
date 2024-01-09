@@ -111,3 +111,32 @@ def graph_user_user_weighted_votes(votes, postings, slice= 500, directed=False):
         G.add_edge(user_x, user_y, weight=vote_difference)
 
     return G
+
+
+def graph_posting_votes(graph_data, directed=False):
+    # comment_user_mapping = graph_data[['ID_Posting',
+    #                                    'ID_CommunityIdentity']].drop_duplicates().rename(
+    #     columns={'ID_Posting': 'Id_posting',
+    #              'ID_CommunityIdentity': 'ID_ParentIdentity'})
+    #
+    # result_df = pd.merge(graph_data, comment_user_mapping, left_on='ID_Posting_Parent', right_on='Id_posting',
+    #                      how='left')
+    result_df = graph_data[['ID_CommunityIdentity', 'ID_CommunityIdentity_y']]
+    reply_counts = result_df.groupby(['ID_CommunityIdentity', 'ID_CommunityIdentity_y']).size().reset_index(name='counts')
+
+    reply_counts = reply_counts[:500]
+
+    if directed:
+        G = nx.from_pandas_edgelist(reply_counts,
+                                    source='ID_CommunityIdentity',
+                                    target='ID_ParentIdentity',
+                                    edge_attr='counts',
+                                    create_using=nx.DiGraph())
+    else:
+        G = nx.from_pandas_edgelist(reply_counts,
+                                    source='ID_CommunityIdentity',
+                                    target='ID_CommunityIdentity_y',
+                                    edge_attr='counts',
+                                    create_using=nx.Graph())
+
+    return G
