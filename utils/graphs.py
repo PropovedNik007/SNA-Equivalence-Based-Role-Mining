@@ -32,7 +32,6 @@ def graph_article_posting_votes(graph_data):
 
     return G
 
-
 def graph_article_posting_weighted_votes(graph_data):
     G = nx.DiGraph()
 
@@ -60,34 +59,46 @@ def graph_article_posting_weighted_votes(graph_data):
             G.nodes[node[0]]['vote_weight'] = vote_weight
     return G
 
+def graph_posting_posting_weighted_replies(graph_data, directed=False):
+    comment_user_mapping = graph_data[['ID_Posting',
+                                        'ID_CommunityIdentity']].drop_duplicates().rename(columns={'ID_Posting':'Id_posting',
+                                                                                                   'ID_CommunityIdentity': 'ID_ParentIdentity'})
 
-def graph_article_posting_votes_nodes(graph_data):
-    G = nx.DiGraph()
+    result_df = pd.merge(graph_data, comment_user_mapping, left_on='ID_Posting_Parent', right_on='Id_posting', how='left')
+    result_df = result_df[['ID_CommunityIdentity', 'ID_ParentIdentity']]
+    reply_counts = result_df.groupby(['ID_CommunityIdentity', 'ID_ParentIdentity']).size().reset_index(name='counts')
+    
+    reply_counts = reply_counts[:500]
 
-    for _, row in graph_data.iterrows():
-        # Define node identifiers
-        article_node = f"Article-{row['ID_Article']}"
-        posting_node = f"Posting-{row['ID_Posting']}"
-        vote_node = f"Vote-{row['ID_Posting']}"
-        article_channel_node = f"Channel-{row['ArticleChannel']}"
-        article_ressort_node = f"Ressort-{row['ArticleRessortName']}"
+    if directed:
+        G = nx.from_pandas_edgelist(reply_counts, 
+                                    source='ID_CommunityIdentity', 
+                                    target='ID_ParentIdentity', 
+                                    edge_attr='counts',
+                                    create_using=nx.MultiDiGraph())
+    else:
+        G = nx.from_pandas_edgelist(reply_counts, 
+                                    source='ID_CommunityIdentity', 
+                                    target='ID_ParentIdentity', 
+                                    edge_attr='counts',
+                                    create_using=nx.MultiGraph())
 
-        # Add nodes for ArticleChannel, ArticleRessortName, Article, Posting, and Votes
-        G.add_node(article_channel_node, type='ArticleChannel', name=row['ArticleChannel'])
-        G.add_node(article_ressort_node, type='ArticleRessortName', name=row['ArticleRessortName'])
-        G.add_node(article_node, type='Article', title=row['ArticleID'])
-        G.add_node(posting_node, type='Posting', comment=row.get('PostingComment', ''))
-        G.add_node(vote_node, type='Vote', vote_positive=row['VotePositive'], vote_negative=row['VoteNegative'])
+    return G
 
-        # Add directed edges
-        G.add_edge(article_channel_node, article_ressort_node, type='channel_to_ressort')
-        G.add_edge(article_ressort_node, article_node, type='ressort_to_article')
-        G.add_edge(article_node, posting_node, type='article_to_posting')
-        G.add_edge(posting_node, vote_node, type='posting_to_vote')
+def graph_user_user_weighted_votes(graph_data, directed=False):
+    
+    if directed:
+        G = nx.MultiDiGraph()
+    else:
+        G = nx.MultiGraph()
 
-        # Add reply relationship
-        if not pd.isna(row['ID_Posting_Parent']):
-            parent_posting_node = f"Posting-{row['ID_Posting_Parent']}"
-            G.add_edge(parent_posting_node, posting_node, type='reply', label='reply')
+    for index, row in graph_data.iterrows():
+        user_x = index[0]
+        user_y = index[1]
+        positive_votes = row['VotePositive']
+        negative_votes = row['VoteNegative']
+
+        vote_difference = positive_votes - negative_votes
+        G.add_edge(user_x, user_y, weight=vote_difference)
 
     return G
