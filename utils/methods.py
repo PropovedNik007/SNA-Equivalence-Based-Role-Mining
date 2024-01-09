@@ -6,13 +6,15 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
+
 def find_structural_equivalent_groups(G):
     equivalent_groups = []
     nodes_checked = set()
 
     def are_structurally_equivalent(node1, node2):
         if G.is_directed():
-            return set(G.predecessors(node1)) == set(G.predecessors(node2)) and set(G.successors(node1)) == set(G.successors(node2))
+            return set(G.predecessors(node1)) == set(G.predecessors(node2)) and set(G.successors(node1)) == set(
+                G.successors(node2))
         else:
             return set(G.neighbors(node1)) == set(G.neighbors(node2))
 
@@ -50,6 +52,7 @@ def find_common_neighbor_equivalent_groups(graph):
             equivalent_groups.append(equivalent)
     return equivalent_groups
 
+
 def find_jaccard_equivalent_groups(graph, threshold=0.5):
     equivalent_groups = []
     for node in graph.nodes():
@@ -66,9 +69,10 @@ def find_jaccard_equivalent_groups(graph, threshold=0.5):
 
     return equivalent_groups
 
-#-------------------Regular Equivalence-------------------#
+
+# -------------------Regular Equivalence-------------------#
 def find_regular_equivalent_groups(graph):
-    equivalent_groups = []  
+    equivalent_groups = []
     visited_nodes = set()
 
     def neighbors_with_degrees(node):
@@ -98,8 +102,8 @@ def find_regular_equivalent_groups(graph):
 
 def find_katz_equivalent_groups(graph):
     katz_centralities = nx.katz_centrality(graph)
-    threshold=0.65
-    
+    threshold = 0.65
+
     equivalent_groups = []
     for node, katz_cent in katz_centralities.items():
         for group in equivalent_groups:
@@ -112,37 +116,37 @@ def find_katz_equivalent_groups(graph):
     return equivalent_groups
 
 
-#-------------------Automorphic Equivalence-------------------#
+# -------------------Automorphic Equivalence-------------------#
 def find_automorphic_equivalent_groups(graph):
     equivalent_groups = []
     nodes = list(graph.nodes())
-    
+
     def is_automorphic(subgraph1, subgraph2):
         return nx.is_isomorphic(subgraph1, subgraph2)
-    
+
     while nodes:
         node = nodes[0]
         equivalent = [node]
         neighbors = set(graph.neighbors(node))
         nodes.remove(node)
-        
+
         i = 0
         while i < len(equivalent):
             curr_node = equivalent[i]
             curr_neighbors = set(graph.neighbors(curr_node))
-            
+
             for n in nodes[:]:
                 subgraph1 = graph.subgraph(list(curr_neighbors) + [curr_node])
                 subgraph2 = graph.subgraph(list(set(graph.neighbors(n))) + [n])
-                
+
                 if is_automorphic(subgraph1, subgraph2):
                     equivalent.append(n)
                     nodes.remove(n)
             i += 1
-        
+
         if len(equivalent) > 1:
             equivalent_groups.append(equivalent)
-    
+
     return equivalent_groups
 
 
