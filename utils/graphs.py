@@ -61,45 +61,47 @@ def graph_article_posting_weighted_votes(graph_data):
     return G
 
 
-def graph_posting_posting_weighted_replies(graph_data, slice = None, directed=False):
+def graph_posting_posting_weighted_replies(graph_data, directed=False):
     comment_user_mapping = graph_data[['ID_Posting',
-                                        'ID_CommunityIdentity']].drop_duplicates().rename(columns={'ID_Posting':'Id_posting',
-                                                                                                   'ID_CommunityIdentity': 'ID_ParentIdentity'})
+                                       'ID_CommunityIdentity']].drop_duplicates().rename(
+        columns={'ID_Posting': 'Id_posting',
+                 'ID_CommunityIdentity': 'ID_ParentIdentity'})
 
-    result_df = pd.merge(graph_data, comment_user_mapping, left_on='ID_Posting_Parent', right_on='Id_posting', how='left')
+    result_df = pd.merge(graph_data, comment_user_mapping, left_on='ID_Posting_Parent', right_on='Id_posting',
+                         how='left')
     result_df = result_df[['ID_CommunityIdentity', 'ID_ParentIdentity']]
     reply_counts = result_df.groupby(['ID_CommunityIdentity', 'ID_ParentIdentity']).size().reset_index(name='counts')
-    
-    reply_counts = reply_counts[:slice]
+
+    reply_counts = reply_counts[:500]
 
     if directed:
-        G = nx.from_pandas_edgelist(reply_counts, 
-                                    source='ID_CommunityIdentity', 
-                                    target='ID_ParentIdentity', 
+        G = nx.from_pandas_edgelist(reply_counts,
+                                    source='ID_CommunityIdentity',
+                                    target='ID_ParentIdentity',
                                     edge_attr='counts',
-                                    create_using=nx.DiGraph())
+                                    create_using=nx.MultiDiGraph())
     else:
-        G = nx.from_pandas_edgelist(reply_counts, 
-                                    source='ID_CommunityIdentity', 
-                                    target='ID_ParentIdentity', 
+        G = nx.from_pandas_edgelist(reply_counts,
+                                    source='ID_CommunityIdentity',
+                                    target='ID_ParentIdentity',
                                     edge_attr='counts',
-                                    create_using=nx.Graph())
+                                    create_using=nx.MultiGraph())
 
     return G
 
 
-def graph_user_user_weighted_votes(votes, postings, slice=None, directed=False):
-
+def graph_user_user_weighted_votes(votes, postings, slice=500, directed=False):
     merged_df = pd.merge(votes, postings[['ID_CommunityIdentity', 'ID_Posting']], on='ID_Posting', how='left')
     merged_df[["ID_CommunityIdentity_x", "VoteNegative", "VotePositive", "ID_CommunityIdentity_y"]].head()
 
-    graph_data = merged_df.groupby(['ID_CommunityIdentity_x', 'ID_CommunityIdentity_y']).agg({'VotePositive': 'sum', 'VoteNegative': 'sum'})
+    graph_data = merged_df.groupby(['ID_CommunityIdentity_x', 'ID_CommunityIdentity_y']).agg(
+        {'VotePositive': 'sum', 'VoteNegative': 'sum'})
     graph_data = graph_data[:slice]
 
     if directed:
-        G = nx.DiGraph()
+        G = nx.MultiDiGraph()
     else:
-        G = nx.Graph()
+        G = nx.MultiGraph()
 
     for index, row in graph_data.iterrows():
         user_x = index[0]
@@ -113,7 +115,7 @@ def graph_user_user_weighted_votes(votes, postings, slice=None, directed=False):
     return G
 
 
-def graph_posting_votes(graph_data, directed=False):
+def graph_user_user(graph_data, directed=False):
     # comment_user_mapping = graph_data[['ID_Posting',
     #                                    'ID_CommunityIdentity']].drop_duplicates().rename(
     #     columns={'ID_Posting': 'Id_posting',
@@ -122,7 +124,8 @@ def graph_posting_votes(graph_data, directed=False):
     # result_df = pd.merge(graph_data, comment_user_mapping, left_on='ID_Posting_Parent', right_on='Id_posting',
     #                      how='left')
     result_df = graph_data[['ID_CommunityIdentity', 'ID_CommunityIdentity_y']]
-    reply_counts = result_df.groupby(['ID_CommunityIdentity', 'ID_CommunityIdentity_y']).size().reset_index(name='counts')
+    reply_counts = result_df.groupby(['ID_CommunityIdentity', 'ID_CommunityIdentity_y']).size().reset_index(
+        name='counts')
 
     reply_counts = reply_counts[:500]
 
@@ -140,3 +143,5 @@ def graph_posting_votes(graph_data, directed=False):
                                     create_using=nx.Graph())
 
     return G
+
+
