@@ -59,7 +59,14 @@ def graph_article_posting_weighted_votes(graph_data):
             G.nodes[node[0]]['vote_weight'] = vote_weight
     return G
 
-def graph_posting_posting_weighted_replies(graph_data, directed=False):
+def graph_posting_posting_weighted_replies(votes, postings, slice= 500, directed=False):
+
+    merged_df = pd.merge(votes, postings[['ID_CommunityIdentity', 'ID_Posting']], on='ID_Posting', how='left')
+    merged_df[["ID_CommunityIdentity_x", "VoteNegative", "VotePositive", "ID_CommunityIdentity_y"]].head()
+
+    graph_data = merged_df.groupby(['ID_CommunityIdentity_x', 'ID_CommunityIdentity_y']).agg({'VotePositive': 'sum', 'VoteNegative': 'sum'})
+    graph_data = graph_data[:slice]
+    
     comment_user_mapping = graph_data[['ID_Posting',
                                         'ID_CommunityIdentity']].drop_duplicates().rename(columns={'ID_Posting':'Id_posting',
                                                                                                    'ID_CommunityIdentity': 'ID_ParentIdentity'})
