@@ -77,13 +77,13 @@ def graph_posting_posting_weighted_replies(graph_data, directed=False):
                                     source='ID_CommunityIdentity', 
                                     target='ID_ParentIdentity', 
                                     edge_attr='counts',
-                                    create_using=nx.MultiDiGraph())
+                                    create_using=nx.DiGraph())
     else:
         G = nx.from_pandas_edgelist(reply_counts, 
                                     source='ID_CommunityIdentity', 
                                     target='ID_ParentIdentity', 
                                     edge_attr='counts',
-                                    create_using=nx.MultiGraph())
+                                    create_using=nx.Graph())
 
     return G
 
@@ -97,9 +97,9 @@ def graph_user_user_weighted_votes(votes, postings, slice= 500, directed=False):
     graph_data = graph_data[:slice]
 
     if directed:
-        G = nx.MultiDiGraph()
+        G = nx.DiGraph()
     else:
-        G = nx.MultiGraph()
+        G = nx.Graph()
 
     for index, row in graph_data.iterrows():
         user_x = index[0]
