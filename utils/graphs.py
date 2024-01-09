@@ -61,7 +61,7 @@ def graph_article_posting_weighted_votes(graph_data):
     return G
 
 
-def graph_posting_posting_weighted_replies(graph_data, directed=False):
+def graph_posting_posting_weighted_replies(graph_data, slice=None, directed=False):
     comment_user_mapping = graph_data[['ID_Posting',
                                        'ID_CommunityIdentity']].drop_duplicates().rename(
         columns={'ID_Posting': 'Id_posting',
@@ -72,25 +72,25 @@ def graph_posting_posting_weighted_replies(graph_data, directed=False):
     result_df = result_df[['ID_CommunityIdentity', 'ID_ParentIdentity']]
     reply_counts = result_df.groupby(['ID_CommunityIdentity', 'ID_ParentIdentity']).size().reset_index(name='counts')
 
-    reply_counts = reply_counts[:500]
+    reply_counts = reply_counts[:slice]
 
     if directed:
         G = nx.from_pandas_edgelist(reply_counts,
                                     source='ID_CommunityIdentity',
                                     target='ID_ParentIdentity',
                                     edge_attr='counts',
-                                    create_using=nx.MultiDiGraph())
+                                    create_using=nx.DiGraph())
     else:
         G = nx.from_pandas_edgelist(reply_counts,
                                     source='ID_CommunityIdentity',
                                     target='ID_ParentIdentity',
                                     edge_attr='counts',
-                                    create_using=nx.MultiGraph())
+                                    create_using=nx.Graph())
 
     return G
 
 
-def graph_user_user_weighted_votes(votes, postings, slice=500, directed=False):
+def graph_user_user_weighted_votes(votes, postings, slice=None, directed=False):
     merged_df = pd.merge(votes, postings[['ID_CommunityIdentity', 'ID_Posting']], on='ID_Posting', how='left')
     merged_df[["ID_CommunityIdentity_x", "VoteNegative", "VotePositive", "ID_CommunityIdentity_y"]].head()
 
@@ -101,7 +101,7 @@ def graph_user_user_weighted_votes(votes, postings, slice=500, directed=False):
     if directed:
         G = nx.MultiDiGraph()
     else:
-        G = nx.MultiGraph()
+        G = nx.Graph()
 
     for index, row in graph_data.iterrows():
         user_x = index[0]
