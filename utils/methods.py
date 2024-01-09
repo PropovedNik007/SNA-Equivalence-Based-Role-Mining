@@ -150,14 +150,57 @@ def find_automorphic_equivalent_groups(graph):
     return equivalent_groups
 
 
+def find_clustering_coefficient_equivalent_nodes(graph, threshold=0.5):
+    equivalent_nodes = []
+    clustering_coeffs = nx.clustering(graph)
+
+    visited = set()
+    for node in graph.nodes():
+        if node not in visited:
+            equivalent = [node]
+            visited.add(node)
+            node_clustering_coeff = clustering_coeffs[node]
+            for other_node in graph.nodes():
+                if other_node not in visited and abs(
+                        clustering_coeffs[other_node] - node_clustering_coeff) <= threshold:
+                    equivalent.append(other_node)
+                    visited.add(other_node)
+            if len(equivalent) > 1:
+                equivalent_nodes.append(equivalent)
+
+    return equivalent_nodes
+
+
+def find_degree_equivalent_nodes(graph):
+    equivalent_nodes = []
+    degrees = dict(graph.degree())
+    visited = set()
+
+    for node in graph.nodes():
+        if node not in visited:
+            equivalent = [node]
+            visited.add(node)
+            node_degree = degrees[node]
+            for other_node in graph.nodes():
+                if other_node not in visited and degrees[other_node] == node_degree:
+                    equivalent.append(other_node)
+                    visited.add(other_node)
+            if len(equivalent) > 1:
+                equivalent_nodes.append(equivalent)
+
+    return equivalent_nodes
+
+
 def equivalence_pipeline(graph):
     equivalence_functions = [
-        find_structural_equivalent_groups,
-        find_common_neighbor_equivalent_groups,
-        find_jaccard_equivalent_groups,
-        find_regular_equivalent_groups,
-        find_katz_equivalent_groups,
-        find_automorphic_equivalent_groups
+        # find_structural_equivalent_groups,
+        # find_common_neighbor_equivalent_groups,
+        # find_jaccard_equivalent_groups,
+        # find_regular_equivalent_groups,
+        # find_katz_equivalent_groups,
+        # find_automorphic_equivalent_groups,
+        find_degree_equivalent_nodes,
+        find_clustering_coefficient_equivalent_nodes
     ]
 
     all_groups = []
