@@ -32,6 +32,7 @@ def graph_article_posting_votes(graph_data):
 
     return G
 
+
 def graph_article_posting_weighted_votes(graph_data):
     G = nx.DiGraph()
 
@@ -59,14 +60,8 @@ def graph_article_posting_weighted_votes(graph_data):
             G.nodes[node[0]]['vote_weight'] = vote_weight
     return G
 
-def graph_posting_posting_weighted_replies(votes, postings, slice= 500, directed=False):
 
-    merged_df = pd.merge(votes, postings[['ID_CommunityIdentity', 'ID_Posting']], on='ID_Posting', how='left')
-    merged_df[["ID_CommunityIdentity_x", "VoteNegative", "VotePositive", "ID_CommunityIdentity_y"]].head()
-
-    graph_data = merged_df.groupby(['ID_CommunityIdentity_x', 'ID_CommunityIdentity_y']).agg({'VotePositive': 'sum', 'VoteNegative': 'sum'})
-    graph_data = graph_data[:slice]
-    
+def graph_posting_posting_weighted_replies(graph_data, directed=False):
     comment_user_mapping = graph_data[['ID_Posting',
                                         'ID_CommunityIdentity']].drop_duplicates().rename(columns={'ID_Posting':'Id_posting',
                                                                                                    'ID_CommunityIdentity': 'ID_ParentIdentity'})
@@ -92,8 +87,15 @@ def graph_posting_posting_weighted_replies(votes, postings, slice= 500, directed
 
     return G
 
-def graph_user_user_weighted_votes(graph_data, directed=False):
-    
+
+def graph_user_user_weighted_votes(votes, postings, slice= 500, directed=False):
+
+    merged_df = pd.merge(votes, postings[['ID_CommunityIdentity', 'ID_Posting']], on='ID_Posting', how='left')
+    merged_df[["ID_CommunityIdentity_x", "VoteNegative", "VotePositive", "ID_CommunityIdentity_y"]].head()
+
+    graph_data = merged_df.groupby(['ID_CommunityIdentity_x', 'ID_CommunityIdentity_y']).agg({'VotePositive': 'sum', 'VoteNegative': 'sum'})
+    graph_data = graph_data[:slice]
+
     if directed:
         G = nx.MultiDiGraph()
     else:
