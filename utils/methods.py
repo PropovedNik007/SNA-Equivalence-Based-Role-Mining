@@ -224,7 +224,7 @@ def equivalence_pipeline(graph):
         find_regular_equivalent_groups,
         # find_katz_equivalent_groups,
         find_automorphic_equivalent_groups,
-        find_pagerank_equivalent_groups,
+        # find_pagerank_equivalent_groups,
         find_degree_equivalent_nodes,
         find_clustering_coefficient_equivalent_nodes
     ]
