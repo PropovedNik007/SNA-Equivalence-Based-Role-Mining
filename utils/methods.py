@@ -152,13 +152,13 @@ def find_automorphic_equivalent_groups(graph):
 
 def find_pagerank_equivalent_groups(graph, threshold=0.01):
     pagerank_scores = nx.pagerank(graph)
-    
+
     sorted_nodes = sorted(pagerank_scores.items(), key=lambda x: x[1], reverse=True)
-    
+
     equivalent_nodes = []
     current_score = sorted_nodes[0][1]
     equivalent_group = []
-    
+
     for node, score in sorted_nodes:
         if abs(score - current_score) <= threshold:
             equivalent_group.append(node)
@@ -166,10 +166,10 @@ def find_pagerank_equivalent_groups(graph, threshold=0.01):
             equivalent_nodes.append(equivalent_group)
             equivalent_group = [node]
             current_score = score
-    
+
     if equivalent_group:
         equivalent_nodes.append(equivalent_group)
-    
+
     return equivalent_nodes
 
 
@@ -218,15 +218,15 @@ def find_degree_equivalent_nodes(graph):
 
 def equivalence_pipeline(graph):
     equivalence_functions = [
-        find_structural_equivalent_groups,
-        find_common_neighbor_equivalent_groups,
-        find_jaccard_equivalent_groups,
-        find_regular_equivalent_groups,
+        # find_structural_equivalent_groups,
+        # find_common_neighbor_equivalent_groups,
+        # find_jaccard_equivalent_groups,
+        # find_regular_equivalent_groups,
         # find_katz_equivalent_groups,
         find_automorphic_equivalent_groups,
         # find_pagerank_equivalent_groups,
-        find_degree_equivalent_nodes,
-        find_clustering_coefficient_equivalent_nodes
+        # find_degree_equivalent_nodes,
+        # find_clustering_coefficient_equivalent_nodes
     ]
 
     all_groups = []
@@ -264,3 +264,4 @@ def equivalence_pipeline(graph):
         plt.title(func_name, fontsize=40)
 
         plt.show()
+    return all_groups
