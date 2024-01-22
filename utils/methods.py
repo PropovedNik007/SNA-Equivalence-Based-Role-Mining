@@ -218,14 +218,13 @@ def find_degree_equivalent_nodes(graph):
 
 def equivalence_pipeline(graph):
     equivalence_functions = [
-        # find_structural_equivalent_groups,
-        # find_common_neighbor_equivalent_groups,
-        # find_jaccard_equivalent_groups,
-        # find_regular_equivalent_groups,
-        # find_katz_equivalent_groups,
+        find_structural_equivalent_groups,
+        find_common_neighbor_equivalent_groups,
+        find_jaccard_equivalent_groups,
+        find_regular_equivalent_groups,
         find_automorphic_equivalent_groups,
         # find_pagerank_equivalent_groups,
-        # find_degree_equivalent_nodes,
+        find_degree_equivalent_nodes,
         # find_clustering_coefficient_equivalent_nodes
     ]
 
